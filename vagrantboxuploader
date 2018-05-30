@@ -35,7 +35,7 @@ curl \
   --header "Content-Type: application/json" \
   --header "Authorization: Bearer ${VAGRANT_CLOUD_TOKEN}" \
   "https://app.vagrantup.com/api/v1/boxes" \
-  --data "{ \"box\": { \"username\": \"${user}\", \"name\": \"${boxname}\" } }" | jq .
+  --data "{ \"box\": { \"username\": \"${user}\", \"name\": \"${boxname}\", \"is_private\": false } }" | jq .
 
 # Create a new version
 echo -e "${YELLOW}Creating a new version of '${boxname}', version: '${version}'${NC}"
