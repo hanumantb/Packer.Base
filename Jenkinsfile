@@ -40,7 +40,7 @@ pipeline {
             unstash 'ansible-vendor'
             sh 'sudo /sbin/vboxconfig'
             sh 'make ubuntu1604-build'
-            stash includes: 'builds/virtualbox-ubuntu1804.box', name: 'ubuntu1604-box'
+            stash includes: 'builds/virtualbox-ubuntu1604.box', name: 'ubuntu1604-box'
           }
         }
       }
