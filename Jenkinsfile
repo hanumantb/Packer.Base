@@ -25,6 +25,14 @@ pipeline {
             stash includes: 'builds/virtualbox-ubuntu1804.box', name: 'ubuntu1804-box'
           }
         }
+        stage('Ubuntu 16.04') {
+          steps {
+            unstash 'ansible-vendor'
+            sh 'sudo /sbin/vboxconfig'
+            sh 'make ubuntu1604-build'
+            stash includes: 'builds/virtualbox-ubuntu1804.box', name: 'ubuntu1604-box'
+          }
+        }
       }
     }
     stage('Release') {
@@ -36,6 +44,15 @@ pipeline {
           steps {
             unstash 'ubuntu1804-box'
             sh 'make ubuntu1804-upload'
+          }
+        }
+        stage('Ubuntu 16.04') {
+          environment {
+            VAGRANT_CLOUD_TOKEN = credentials('vagrant-cloud-vvv-base')
+          }
+          steps {
+            unstash 'ubuntu1604-box'
+            sh 'make ubuntu1604-upload'
           }
         }
       }

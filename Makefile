@@ -15,3 +15,11 @@ ubuntu1804-build:
 
 ubuntu1804-upload:
 	./vagrantboxuploader vvv-base ubuntu1804 $$(date +%s) virtualbox ./builds/virtualbox-ubuntu1804.box
+
+ubuntu1604: prepare ubuntu1604-build ubuntu1604-upload clean
+
+ubuntu1604-build:
+	packer build -var-file=./ubuntu-1604.json ./ubuntu.json
+
+ubuntu1604-upload:
+	./vagrantboxuploader vvv-base ubuntu1604 $$(date +%s) virtualbox ./builds/virtualbox-ubuntu1604.box
