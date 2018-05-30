@@ -18,6 +18,11 @@ pipeline {
     stage('Build') {
       parallel {
         stage('Ubuntu 18.04') {
+          agent {
+            node {
+              label 'runner'
+            }
+          }
           steps {
             unstash 'ansible-vendor'
             sh 'sudo /sbin/vboxconfig'
@@ -26,6 +31,11 @@ pipeline {
           }
         }
         stage('Ubuntu 16.04') {
+          agent {
+            node {
+              label 'runner'
+            }
+          }
           steps {
             unstash 'ansible-vendor'
             sh 'sudo /sbin/vboxconfig'
