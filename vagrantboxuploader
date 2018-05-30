@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+# Creates and uploads a new Vagrant cloud box and version and uploads the box
+set -e
+
+if [ ! $# -eq 5 ]; then
+  scriptname=`basename ${0}`
+  echo "Correct usage: ${scriptname} <user> <boxname> <version> <provider> <boxfile>"
+  exit 1
+fi
+
+# TODO check if ${VAGRANT_CLOUD_TOKEN} is defined
+if [ -z ${VAGRANT_CLOUD_TOKEN+x} ]; then 
+  echo "VAGRANT_CLOUD_TOKEN environment variable is not defined, it must be defined before this script will run"
+  exit 1
+fi
+
+# TODO check if jq is present, needed to  parse out the upload path later on
+if [ `which jq` -ne '' ]; then
+  echo "jq command is not installed, install before using"
+  exit 1
+fi
+
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+user=${1}
+boxname=${2}
+version=${3}
+provider=${4}
+boxfile=${5}
+
+# Create a new box
+echo -e "${YELLOW}Creating a new box named '${boxname}'${NC}"
+curl \
+  --silent \
+  --header "Content-Type: application/json" \
+  --header "Authorization: Bearer ${VAGRANT_CLOUD_TOKEN}" \
+  "https://app.vagrantup.com/api/v1/boxes" \
+  --data "{ \"box\": { \"username\": \"${user}\", \"name\": \"${boxname}\" } }" | jq .
+
+# Create a new version
+echo -e "${YELLOW}Creating a new version of '${boxname}', version: '${version}'${NC}"
+curl \
+  --silent \
+  --header "Content-Type: application/json" \
+  --header "Authorization: Bearer ${VAGRANT_CLOUD_TOKEN}" \
+  "https://app.vagrantup.com/api/v1/box/${user}/${boxname}/versions" \
+  --data "{ \"version\": { \"version\": \"${version}\" } }" | jq .
+
+echo -e "${YELLOW}Creating a new '${provider}' provider for version '${version}'${NC}"
+curl \
+  --silent \
+  --header "Content-Type: application/json" \
+  --header "Authorization: Bearer ${VAGRANT_CLOUD_TOKEN}" \
+  "https://app.vagrantup.com/api/v1/box/${user}/${boxname}/version/${version}/providers" \
+  --data "{ \"provider\": { \"name\": \"${provider}\" } }" | jq .
+
+echo -e "${YELLOW}Retrieving an upload path to upload the box to${NC}"
+response=$(curl \
+  --silent \
+  --header "Authorization: Bearer ${VAGRANT_CLOUD_TOKEN}" \
+  "https://app.vagrantup.com/api/v1/box/${user}/${boxname}/version/${version}/provider/${provider}/upload")
+
+# Extract the upload URL from the response (requires the jq command)
+upload_path=$(echo "$response" | jq .upload_path)
+upload_path="${upload_path%\"}"
+upload_path="${upload_path#\"}"
+
+echo -e "${YELLOW}Uploading box${NC}"
+# Perform the upload
+curl --silent $upload_path --request PUT --upload-file ${boxfile} | jq .
+
+echo -e "${YELLOW}Releasing${NC}"
+# Release the version
+curl \
+  --silent --header "Authorization: Bearer ${VAGRANT_CLOUD_TOKEN}" \
+  "https://app.vagrantup.com/api/v1/box/${user}/${boxname}/version/${version}/release" \
+  --request PUT | jq .
+
+echo -e "${YELLOW}Script ran${NC}"

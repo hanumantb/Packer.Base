@@ -1,0 +1,23 @@
+---
+- hosts: all
+  become: yes
+  gather_facts: yes
+
+  roles:
+    - vendor/geerlingguy.nfs
+    - vendor/geerlingguy.packer-debian
+
+  tasks:
+    - apt: "name={{ item }} state=installed"
+      with_items:
+        - apt-transport-https
+        - curl
+        - git
+        - nano
+        - vim
+        - wget
+
+    - name: Remove dependencies that are no longer required
+      apt:
+        autoremove: yes
+        autoclean: yes
