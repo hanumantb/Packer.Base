@@ -1,3 +1,4 @@
 /builds
 /packer_cache
 /ansible/roles/vendor
+/output
