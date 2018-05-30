@@ -20,6 +20,7 @@ pipeline {
         stage('Ubuntu 18.04') {
           steps {
             unstash 'ansible-vendor'
+            sh 'sudo /sbin/vboxconfig'
             sh 'make ubuntu1804-build'
             stash includes: 'builds/virtualbox-ubuntu1804.box', name: 'ubuntu1804-box'
           }
